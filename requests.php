@@ -1,0 +1,4 @@
+<?php
+    include 'accept.php';
+?>
+
