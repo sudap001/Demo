@@ -39,6 +39,7 @@
         .pagging{
             
             text-align:center;
+            color:white;
         }
         .author-row {
             margin-bottom: 20px;
@@ -84,7 +85,7 @@
     <a href="#contact">Contact</a>
     <div class="search-bar">
     <form method="post" action="search.php">
-                <input type="text" name="search" spellcheck="true" autocorrect="on" placeholder="Search...">
+                <input type="text" name="search" value="<?= htmlspecialchars($search)?>" spellcheck="true" autocorrect="on" placeholder="Search...">
                 <button type="submit" name="submit">Search</button>
             </form>
             
@@ -149,6 +150,7 @@ $params = [
         $source = $hit['_source'];
                 $bookid =$source['etd_file_id'];?>
             <div class="container">
+                
                 <div class="author-row">
                 <strong><?php echo $source['author']; ?></strong><br>
                 <?php echo $source['title']; ?>
@@ -156,6 +158,7 @@ $params = [
         <?php
              // Example user ID
         echo '<input type="hidden" name="bookid" value="' . $bookid . '">';
+        echo '<input type="hidden" name="key" value="' . $search . '">';
         ?>
         <input type="submit" name="showbook" value="ReadMore">
     </form>
@@ -174,6 +177,7 @@ $params = [
         <br>
         <div class="pagging">
         <?php
+        echo 'Total documents: '.$totalHits;
         echo '<a class="container " href="search.php?page='. $firstpage .'&search='.$search.' " ><< </a>';
         
         if ($page > 1) {
@@ -208,11 +212,16 @@ $params = [
 $pageSize = 4; // Number of results per page
 $page = isset($_GET['page']) ?  max(1, intval($_GET['page'])) : 1;
 $search=isset($_GET['search']) ? $_GET['search'] : '';
+$search=sanitizeInput($search);
 if (isset($_POST['submit'])) {
     $search = $_POST['search'];
+    $search=sanitizeInput($search);
 }
 
 searchWithPagination($search, $pageSize, $page);
+function sanitizeInput($input) {
+    return strip_tags($input); // Remove HTML tags
+}
         ?>
         
         
