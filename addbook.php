@@ -5,6 +5,7 @@ use Elasticsearch\ClientBuilder;
 
 
 if(isset($_POST["add"])){
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
      $adviname=$_POST['advisorName'];
      $author=$_POST['author'];
      $degree=$_POST['degree'];
@@ -22,42 +23,43 @@ if(isset($_POST["add"])){
      $hosts = ['localhost:9200'];
      $client = ClientBuilder::create()->setHosts($hosts)->build();
 
+            indexToElasticsearch($author, $title, $year,$adviname,$program,$uni,$abstract,$degree);
 
-
-
-        if ($_FILES["pdfFile"]["error"] == 0) {
-            $pdfFilePath = $_FILES["pdfFile"]["tmp_name"];
-            $pdfFileName = $_FILES["pdfFile"]["name"];
-
-            // Index the data into Elasticsearch
-        indexToElasticsearch($author, $title, $year, $pdfFilePath, $pdfFileName,$adviname,$program,$uni,$abstract,$degree);
-
-            echo "Data and PDF successfully uploaded to Elasticsearch.";
+    
+            echo "PDF successfully uploaded and indexed.";
         } else {
-            echo "Error uploading the PDF file.";
+            echo "Error uploading the file.";
         }
+
     }
     
 
 
-function indexToElasticsearch($authorName, $title, $year, $pdfFilePath, $pdfFileName,$adviname,$program,$uni,$abstract,$degree) {
+function indexToElasticsearch($author, $title, $year, $adviname,$program,$uni,$abstract,$degree) {
 
-
+    $hosts=['localhost:9200'];
     $client = ClientBuilder::create()->setHosts($hosts)->build();
     // Indexing settings
-    $index = 'bookdetails'; // Replace with your desired index name
-    // $type = '_doc';
+    $index = 'bookdetails'; 
+    // Replace with your desired index name
+    $countParams = [
+        'index' => $index,
+        // 'type' => $type,
+        'body' => [
+            'query' => [
+                'match_all' => (object) [],
+            ],
+        ],
+    ];
 
-    // Read PDF content
-    $pdfContent = base64_encode(file_get_contents($pdfFilePath));
-
-    // Index document with author name, title, year, and PDF content
-
+    $countres=$client->count($countParams);
+    $total=$countres['count'];
+    $total+=1;
     $params = [
         'index' => $index,
         // 'type' => $type,
         'body' => [
-            'etd_file_id'=>$pdfFileName,
+            'etd_file_id'=>$total,
             'author' => $author,
             'title' => $title,
             'year' => $year,
@@ -66,26 +68,15 @@ function indexToElasticsearch($authorName, $title, $year, $pdfFilePath, $pdfFile
             'text'=>$abstract,
             'program'=>$program,
             'university'=>$uni,
-            'file_name' => $pdfFileName,
-            'content' => $pdfContent,
         ],
     ];
-
     $response = $client->index($params);
-
-    // You can handle the response as needed
-    // Note: In a production environment, you should add error handling and logging
-
-
-
-
-
-     echo '<script>
-     alerty("Book Added susscessfully");
-     window.location="userdashboard.php";
-     </script>';
+    // session_start();
+    // $_SESSION['id'] = $total;
+    header("Location:selectpdf.php");
      
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -96,12 +87,9 @@ function indexToElasticsearch($authorName, $title, $year, $pdfFilePath, $pdfFile
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
-            background-image:url("photo.png");
             margin: 0;
             padding: 0;
         }
-        
-        
         .container {
             max-width: 800px;
             margin: 20px auto;
@@ -133,49 +121,13 @@ function indexToElasticsearch($authorName, $title, $year, $pdfFilePath, $pdfFile
         button:hover {
             background-color: #45a049;
         }
-        .navbar {
-            overflow: hidden;
-            background-color: #333;
-        }
-        .navbar a {
-            float: left;
-            display: block;
-            color: white;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-        .navbar a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-        .search-bar {
-            
-            width: 70%;
-            height: 40px;
-            font-size: 18px;
-            padding:1%;
-            padding-top: 30px;
-            display: flex;
-            align-items: center;
-        }
     </style>
     <title>Advisor Details</title>
 </head>
 <body>
-<div class="navbar">
-    <a href="userdashboard.php">Dashboard</a>
-    <div class="search-bar">
-    <form method="post" action="searchlogin.php">
-                <input type="text" name="search" placeholder="Search...">
-                <button type="submit" name="submit">Search</button>
-            </form>
-    </div>
-    </div>
-
     <div class="container">
         <h2>Add New Book</h2>
-        <form action="addbook.php" method="post">
+        <form action="addbook.php" method="post" enctype="multipart/form-data">
             <label for="advisorName">Advisor Name:</label>
             <input type="text" id="advisorName" name="advisorName" required>
 
@@ -197,10 +149,8 @@ function indexToElasticsearch($authorName, $title, $year, $pdfFilePath, $pdfFile
             <label for="year">Year:</label>
             <input type="text" id="year" name="year" required>
 
-            <label for="abstractText">Abstract</label>
+            <label for="abstractText">abstract</label>
             <textarea id="abstract" name="abstract" rows="5" required></textarea>
-            <label for="pdfFile">Select PDF File:</label>
-        <input type="file" name="pdfFile" id="pdfFile" accept=".pdf" required>
         <br>
 
             <button type="submit" name="add">Submit</button>

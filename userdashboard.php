@@ -33,7 +33,7 @@ $email=$_SESSION['email'];
             color: black;
         }
         .dropbtn {
-            background-color: #4CAF50;
+            background-color: black;
             color: white;
             padding: 14px 20px;
             font-size: 16px;
@@ -48,6 +48,7 @@ $email=$_SESSION['email'];
             min-width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
             z-index: 1;
+            margin-left: 350px;
         }
         
         .dropdown:hover .dropdown-content {
@@ -59,6 +60,10 @@ $email=$_SESSION['email'];
             padding: 12px 16px;
             text-decoration: none;
             display: block;
+        }
+        p{
+            color: white;
+            text-align: center;
         }
         
         .dropdown-content a:hover {
