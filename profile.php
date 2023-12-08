@@ -52,7 +52,7 @@ $row=mysqli_fetch_assoc($result);
         echo "<div class='user-info'>";
         echo '<a href="edit.php">Edit Profile<a>';
         echo '<br>';
-        echo '<a href="index.php">Home<a>';
+        echo '<a href="userdashboard.php">Home<a>';
         echo "</div>";
         ?>
     </div>

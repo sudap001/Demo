@@ -42,54 +42,96 @@ if(isset($_POST['showbook'])){
         }
 
 
-        #chat-container {
-            position: fixed;
-            bottom: 0;
-            right:5px;
-            width:20%;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            overflow: hidden;
-        }
+        body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
 
-        #chat-header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px;
-            cursor: pointer;
-        }
-        #chat-header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px;
-            cursor: pointer;
-        }
+.chatbox {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 300px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
 
-        #chat-body {
-            height: 400px;
-            overflow-y: auto;
-            padding: 10px;
-            background-color:#edf8fc;
-        }
+.header {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+}
 
-        #user-message {
-            color: #333;
-            background-color: #fce6d2;
-            
-        }
+.chat-body {
+    display: none;
+}
 
-        #bot-message {
-            color: #007BFF;
-            background-color:#ffffff;
-        }
+.messages {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 10px;
+}
 
-        #chat-input {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            outline: none;
-        }
+.user-message {
+    background-color: #e6e6e6;
+    border-radius: 5px;
+    padding: 5px;
+    margin-bottom: 5px;
+}
 
+.bot-message {
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 5px;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+.input-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+}
+
+#userInput {
+    width: calc(70% - 5px);
+    padding: 5px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#submitBtn {
+    width: 28%;
+    padding: 7px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+}
+
+#submitBtn:hover {
+    background-color: #0056b3;
+}
+
+.open .chat-body {
+    display: block;
+}
+
+.highlight {
+        background-color: yellow; /* You can change the background color */
+        font-weight: bold; /* Optionally, you can make the text bold */
+    }
     </style>
     <title>Book Information</title>
 </head>
@@ -97,9 +139,9 @@ if(isset($_POST['showbook'])){
 
 <div class="thesis-container">
     <h2>Book Information</h2>
-    <h3>Searched key: <?php 
-    $key = preg_replace('/\b(' . preg_quote($key, '/') . ')\b/i', '<mark>$1</mark>', $key);
-    echo $key?></h3>
+    <!-- <h3>Searched key: 
+    // $key = preg_replace('/\b(' . preg_quote($key, '/') . ')\b/i', '<mark>$1</mark>', $key);
+    // echo $key?></h3> -->
     
 
     <?php
@@ -129,21 +171,40 @@ $params = [
 ];
 
 $response = $client->search($params);
+function highlightSearchTerm($text, $searchTerm) {
+    if ($searchTerm !== '' && stripos($text, $searchTerm) !== false) {
+        // Highlight the search term using HTML and CSS
+        $highlightedText = preg_replace("/\b($searchTerm)\b/i", '<span class="highlight">$1</span>', $text);
+        return $highlightedText;
+    }
+    return $text;
+}
 
 if (!empty($response['hits']['hits'])) {
     foreach ($response['hits']['hits'] as $hit) {
         $source = $hit['_source'];
+        $advisor=highlightSearchTerm($source['advisor'], $key);
+        $author=highlightSearchTerm($source['author'], $key);
+        $degree=highlightSearchTerm($source['degree'], $key);
+        $program=highlightSearchTerm($source['program'], $key);
+        $university=highlightSearchTerm($source['university'], $key);
+        $title=highlightSearchTerm($source['title'], $key);
+        $year=highlightSearchTerm($source['year'], $key);
+        $text=highlightSearchTerm($source['text'], $key);
+
+
+
             echo '<div class="Book-info">';
             // echo $key;
-            echo '<strong>Advisor Name:</strong> ' . $source['advisor'] . '<br>';
-            echo '<strong>Author:</strong> ' . $source['author'] . '<br>';
-            echo '<strong>Degree:</strong> ' . $source['degree'] . '<br>';
-            echo '<strong>Program:</strong> ' . $source['program'] . '<br>';
-            echo '<strong>Title:</strong> ' . $source['title'] . '<br>';
-            echo '<strong>University:</strong> ' . $source['university'] . '<br>';
-            echo '<strong>Year:</strong> ' . $source['year'] . '<br>';
-            $abstract = preg_replace('/[\[\]]/', '', $source['text']);
-            // $abstract = str_replace("'", "", $abstract);
+            echo '<strong>Advisor Name:</strong> ' . $advisor . '<br>';
+            echo '<strong>Author:</strong> ' . $author . '<br>';
+            echo '<strong>Degree:</strong> ' . $degree . '<br>';
+            echo '<strong>Program:</strong> ' . $program . '<br>';
+            echo '<strong id ="head1">Title:</strong> ' . $title . '<br>';
+            echo '<strong>University:</strong> ' . $university. '<br>';
+            echo '<strong>Year:</strong> ' . $year. '<br>';
+            $abstract = preg_replace('/[\[\]]/', '', $text);
+            $abstract = str_replace("'", "", $abstract);
             $abstract=CallWikifier($abstract);
             echo '<div class="abstract" id ="paragraph"><strong>Abstract:</strong> ' . $abstract . '</div>';
             echo '</div>';?>
@@ -164,34 +225,62 @@ if (!empty($response['hits']['hits'])) {
     
 
 </div>
-<div id="chat-container">
-        <!-- <div id="chat-header" onclick="tglChat()">Chatbot</div> -->
-        <div id="chat-body"></div>
-        <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="sendMsg(event)">
+<div class="chatbox" id="chatbox">
+    <div class="header" id="toggleChat">
+        Chatbot
     </div>
+    <div class="chat-body" id="chatBody">
+        <div class="messages" id="chatMessages">
+            <!-- Chat messages will be displayed here -->
+            <div class="bot-message">Hello, How may I help you?</div>
+        </div>
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Type here..." onkeypress="sendMsg(event)">
+            <!-- <button id="submitBtn">Submit</button> -->
+        </div>
+    </div>
+</div>
 
     <script>
-        function sendMsg(e) {
+        let chatOpen = false;
+
+    const chatbox = document.getElementById('chatbox');
+    const toggleChat = document.getElementById('toggleChat');
+    const chatBody = document.getElementById('chatBody');
+    const userInput = document.getElementById('userInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const chatMessages = document.getElementById('chatMessages');
+
+    toggleChat.addEventListener('click', function () {
+        chatbox.classList.toggle('open');
+    });
+
+
+
+function sendMsg(e) {
 
 if (e.key === 'Enter') {
 
-    var chatInput = document.getElementById('chat-input');
+    var chatInput = document.getElementById('userInput');
 
     var question = chatInput.value;
 
     var chatBody = document.getElementById('chat-body');
 
     var userMessage = document.createElement('div');
+    const messageDiv = document.createElement('div');
+        messageDiv.className = 'user-message';
+        messageDiv.textContent = question;
 
-    userMessage.id = 'user-message';
+    messageDiv.id = 'user-message';
 
     userMessage.textContent = question;
 
-    chatBody.appendChild(userMessage);
+    chatMessages.appendChild(userMessage);
 
     var lineBreak = document.createElement("br");
 
-    chatBody.appendChild(lineBreak);
+
 
     getAnswer(question);
 
@@ -208,13 +297,18 @@ const apiKey = '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'; // Replace
 
 
 const apiUrl = 'https://api.openai.com/v1/engines/davinci/completions';
+// var title =  document.getElementById("head1");
+
+// var title1 = title.textContent;
+
+var paragraph =  document.getElementById("paragraph");
 
 var abstract = paragraph.textContent;
 
 
 const requestBody = {
 
-    prompt: abstract + "\nQuestion: " + question + "\nAnswer:",
+    prompt: abstract + question + "\nAnswer:",
 
     max_tokens: 50,
 
@@ -250,17 +344,19 @@ var answer = responseJson.choices[0].text;
 
 var chatBody = document.getElementById('chat-body');
 
-var botMessage = document.createElement('div');
+const messageDiv = document.createElement('div');
 
-botMessage.id = 'bot-message';
+messageDiv.id = 'bot-message';
 
-botMessage.textContent = answer;
 
-chatBody.appendChild(botMessage);
+
+        messageDiv.className =  'bot-message';
+        messageDiv.textContent = answer;
+        chatMessages.appendChild(messageDiv);
+
 
 var lineBreak = document.createElement("br");
 
-chatBody.appendChild(lineBreak);
 
 }
 

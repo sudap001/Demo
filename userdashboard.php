@@ -1,6 +1,28 @@
 <?php
+$servername = "localhost";
+$username = "sudap001";
+$password = "WebProjectUser";
+$database = "librarymanagment";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $database);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
 session_start();
 $email=$_SESSION['email'];
+$sql = "SELECT * FROM signupuser WHERE email='$email'";
+$result = $conn->query($sql);
+if ($result->num_rows > 0) {
+    // User found, verify the password
+    $row = $result->fetch_assoc();
+    $apikey=$row['apikey'];
+}else{
+    $apikey= 'apikey not found';
+}
 
 ?>
 
@@ -112,7 +134,12 @@ $email=$_SESSION['email'];
     </div>
     
         </div>
-        
+        <div>
+    <?php
+    echo "Your API key:".$apikey."";
+    ?>
+    </div>
+
         
     <!-- <a href="#">Contact</a> -->
 

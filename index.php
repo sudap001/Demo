@@ -40,6 +40,8 @@ $offset = ($currentPage - 1) * $itemsPerPage;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="logo.jpg">
+
     <title>Library Mangement System</title>
     <style>
         /* Add your CSS styles for the navigation bar here */

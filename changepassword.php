@@ -109,11 +109,11 @@ if($conpass!=$newpass){
             </div> -->
             <div class="form-group">
                 <label for="npassword">New password:</label>
-                <input type="text" id="newpassword" name="newpassword" required>
+                <input type="password" id="newpassword" name="newpassword" required>
             </div>
             <div class="form-group">
                 <label for="username">Conform password:</label>
-                <input type="text" id="conpass" name="conpass" required>
+                <input type="password" id="conpass" name="conpass" required>
             </div>
             <div class="form-group">
                 <input type="submit" name="change" value="change password">

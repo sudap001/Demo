@@ -83,12 +83,16 @@ function indexToElasticsearch($author, $title, $year, $adviname,$program,$uni,$a
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="logo.jpg">
+
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            background-image:url("photo.png"); 
+
         }
         .container {
             max-width: 800px;

@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body{
-            background-image:url("photo.png");
-            /* background-image:url("images.jpg"); */
+            background-image:url("photo.png"); 
         }
         .navbar {
             overflow: hidden;
@@ -37,9 +36,8 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         .pagging{
-            
+           
             text-align:center;
-            color:white;
         }
         .author-row {
             margin-bottom: 20px;
@@ -48,9 +46,9 @@
             border-radius: 4px;
             text-transform: uppercase;
         }
-        
+       
         .search-bar {
-            
+           
             width: 70%;
             height: 40px;
             font-size: 18px;
@@ -58,7 +56,7 @@
             display: flex;
             align-items: center;
         }
-        
+       
         input[type="text"] {
             padding: 5px;
             border: none;
@@ -85,10 +83,10 @@
     <a href="#contact">Contact</a>
     <div class="search-bar">
     <form method="post" action="search.php">
-                <input type="text" name="search" value="<?= htmlspecialchars($search)?>" spellcheck="true" autocorrect="on" placeholder="Search...">
+                <input type="text" name="search" spellcheck="true" autocorrect="on" placeholder="Search...">
                 <button type="submit" name="submit">Search</button>
             </form>
-            
+           
         </div>
 </div>
 
@@ -131,8 +129,8 @@ $params = [
                     ['match' => ['advisor' => $search]],
                     ['match' => ['program' => $search]],
                     ['match' => ['university' => $search]],
-                    // ['match' => ['text' => $search]],
-                    
+                    ['match' => ['text' => $search]],
+                   
                     // Add more fields as needed
                 ],
             ],
@@ -144,13 +142,20 @@ $params = [
 ];
 
     $response = $client->search($params);
+    function highlightSearchTerm($text, $searchTerm) {
+        if ($searchTerm !== '' && stripos($text, $searchTerm) !== false) {
+            // Highlight the search term using HTML and CSS
+            $highlightedText = preg_replace("/\b($searchTerm)\b/i", '<span class="highlight">$1</span>', $text);
+            return $highlightedText;
+        }
+        return $text;
+    }
 
      if (!empty($response['hits']['hits'])) {
     foreach ($response['hits']['hits'] as $hit) {
         $source = $hit['_source'];
                 $bookid =$source['etd_file_id'];?>
             <div class="container">
-                
                 <div class="author-row">
                 <strong><?php echo $source['author']; ?></strong><br>
                 <?php echo $source['title']; ?>
@@ -165,7 +170,7 @@ $params = [
             </div>
             </div>
       <?php  }
-          
+         
     // }
 
 
@@ -177,16 +182,15 @@ $params = [
         <br>
         <div class="pagging">
         <?php
-        echo 'Total documents: '.$totalHits;
         echo '<a class="container " href="search.php?page='. $firstpage .'&search='.$search.' " ><< </a>';
-        
+       
         if ($page > 1) {
             echo '<a class="container" href="search.php?page='. ($page - 1) .'&search='.$search.' " >< </a>';
         } else {
             if($page==1){
                 echo '<';
             }
-            
+           
         }
 
         echo "[$page]";
@@ -197,7 +201,7 @@ $params = [
             if($page==1){
                 echo ' >';
             }
-            
+           
         }
         echo '<a class="container" href="search.php?page='. $totalPages.'&search='.$search.' " >  >></a>';
     } else {
@@ -216,15 +220,72 @@ $search=sanitizeInput($search);
 if (isset($_POST['submit'])) {
     $search = $_POST['search'];
     $search=sanitizeInput($search);
+    $apiKey = '2UQCEnxzZeMQsUe0';
+
+
+
+// Usage example:
+$inputText = $search;
+$search = correctSpelling($inputText, $apiKey);
+
 }
 
 searchWithPagination($search, $pageSize, $page);
+
 function sanitizeInput($input) {
-    return strip_tags($input); // Remove HTML tags
+    return strip_tags($input); // Remove HTML tags
+}
+function correctSpelling($text, $apiKey) {
+    $apiUrl = "https://api.textgears.com/spelling?key=$apiKey&text=" . urlencode($text);
+
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $apiUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+            "Content-Type: application/json"
+        ),
+    ));
+
+    $response = curl_exec($curl);
+    $err = curl_error($curl);
+    curl_close($curl);
+
+    if ($err) {
+        return "cURL Error #:" . $err;
+    } else {
+        $decodedResponse = json_decode($response, true);
+
+        // Check if there are suggestions for corrections
+        if (isset($decodedResponse['response']['errors'])) {
+            $errors = $decodedResponse['response']['errors'];
+
+            foreach ($errors as $error) {
+                $incorrectWord = $error['bad'];
+                $correctedWord = $error['better'][0]; // Take the first suggestion
+
+                // Replace the incorrect word with the corrected word
+                $text = str_replace($incorrectWord, $correctedWord, $text);
+
+                echo '<div style="text-align: center; background-color: lightblue; padding: 20px; margin-top:20px; width:">';
+                echo "Incorrect word: $incorrectWord<br>";
+                echo "Corrected word: $correctedWord<br><br>";
+                echo '</div>';
+            }
+        }
+
+        // Return the corrected text
+        return $text;
+    }
 }
         ?>
-        
-        
+       
+       
        
  
 
@@ -232,3 +293,4 @@ function sanitizeInput($input) {
 
 </body>
 </html>
+
